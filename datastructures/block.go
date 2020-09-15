@@ -26,10 +26,10 @@ type (
 )
 
 // NewBlock creates a block
-func NewBlock(height int32, parentHash string, value string) *Block {
-	hash, err := genHash(height, parentHash, value)
+func NewBlock(height int32, parentHash string, value string) (*Block, error) {
+	hash, err := GenHash(height, parentHash, value)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &Block{
 		Header: Header{
@@ -40,10 +40,11 @@ func NewBlock(height int32, parentHash string, value string) *Block {
 			Size:       32,
 		},
 		Value: value,
-	}
+	}, nil
 }
 
-func genHash(height int32, parentHash string, value string) (string, error) {
+// GenHash generates a secure hash
+func GenHash(height int32, parentHash string, value string) (string, error) {
 	var unixTime int64 = time.Now().Unix()
 	currentTime := strconv.FormatInt(unixTime, 10)
 	hashStr := string(height) + currentTime + parentHash + string(32) + value
@@ -60,19 +61,10 @@ func genHash(height int32, parentHash string, value string) (string, error) {
 func DecodeFromJSON(jsonData []byte) (Block, error) {
 	block := Block{}
 	err := json.Unmarshal(jsonData, &block)
-	if err != nil {
-		return block, err
-	}
-	return block, nil
+	return block, err
 }
 
 // EncodeToJSON to encode a block to json
 func (b Block) EncodeToJSON() ([]byte, error) {
-
-	ToJSON, err := json.Marshal(b)
-	if err != nil {
-		return ToJSON, err
-	}
-
-	return ToJSON, nil
+	return json.Marshal(b)
 }

@@ -2,6 +2,7 @@ package datastructures
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -14,54 +15,60 @@ type Blockchain struct {
 
 // NewBlockChain initializes a new blockchain struct
 func NewBlockChain() *Blockchain {
-	var b Blockchain
-	b.Chain = make(map[int32][]*Block)
-	return &b
+	return &Blockchain{Chain: make(map[int32][]*Block), Length: 0}
 }
 
 // Get used to get blocks of a specified height
-func (b *Blockchain) Get(height int32) []*Block {
+func (b *Blockchain) Get(height int32) ([]*Block, error) {
 	if val, ok := b.Chain[height]; ok {
-		return val
+		return val, nil
+	}
+	return nil, errors.New("Block does not exist at provided height")
+}
+
+// Insert inserts a block into the blockchain
+func (b *Blockchain) Insert(block *Block) error {
+
+	if len(b.Chain[block.Header.Height]) == 0 {
+		b.Chain[block.Header.Height] = make([]*Block, 1)
+		b.Chain[block.Header.Height][0] = block
+		b.Length++
+		return nil
+	}
+
+	slice := b.Chain[block.Header.Height]
+
+	for i := range slice {
+		if b.Chain[block.Header.Height][i].Header.Hash != block.Header.Hash {
+			slice = append(slice, block)
+			b.Chain[block.Header.Height] = slice
+			b.Length++
+			fmt.Println("stuff", b.Chain[block.Header.Height])
+
+		} else {
+			return errors.New("Cannot insert, block with same hash already exists")
+		}
 	}
 	return nil
 }
 
-// Insert inserts a block into the blockchain
-func (b *Blockchain) Insert(block *Block) {
-
-	if len(b.Chain[block.Header.Height]) == 0 {
-		var newSlice []*Block = []*Block{block}
-		b.Chain[block.Header.Height] = make([]*Block, 2)
-		b.Chain[block.Header.Height] = newSlice
-		return
-	}
-
-	for i := range b.Chain[block.Header.Height] {
-		if b.Chain[block.Header.Height][i].Header.Hash != block.Header.Hash {
-			b.Chain[block.Header.Height] = append(b.Chain[block.Header.Height], block)
-			return
-		}
-	}
-}
-
 // EncodeToJSON encodes a blockchain to json
-func (b *Blockchain) EncodeToJSON() string {
+func (b *Blockchain) EncodeToJSON() (string, error) {
 	var str strings.Builder
 
-	for _, v := range b.Chain {
-		for _, val := range v {
-			json, err := val.EncodeToJSON()
+	for _, fork := range b.Chain {
+		for _, block := range fork {
+			json, err := block.EncodeToJSON()
 			if err != nil {
-				panic(err)
+				return "", err
 			}
 			_, err = str.Write(json)
 			if err != nil {
-				panic(err)
+				return "", err
 			}
 		}
 	}
-	return str.String()
+	return str.String(), nil
 }
 
 // DecodeFromJSON decodes a string to a list of block JSON strings and inserts each block into the chain
