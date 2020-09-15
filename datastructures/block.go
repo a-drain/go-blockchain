@@ -58,10 +58,10 @@ func GenHash(height int32, parentHash string, value string) (string, error) {
 }
 
 // DecodeFromJSON to decode a json string to a block
-func DecodeFromJSON(jsonData []byte) (Block, error) {
+func DecodeFromJSON(jsonData []byte) (*Block, error) {
 	block := Block{}
 	err := json.Unmarshal(jsonData, &block)
-	return block, err
+	return &block, err
 }
 
 // EncodeToJSON to encode a block to json

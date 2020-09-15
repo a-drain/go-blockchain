@@ -18,7 +18,6 @@ func main() {
 	err = blockchain.Insert(block2)
 	handleError(err)
 
-	// fmt.Println(blockchain.Get(2))
 	str, err := blockchain.EncodeToJSON()
 	handleError(err)
 
