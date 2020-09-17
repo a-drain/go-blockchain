@@ -3,7 +3,6 @@ package datastructures
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 )
 
@@ -43,8 +42,6 @@ func (b *Blockchain) Insert(block *Block) error {
 			slice = append(slice, block)
 			b.Chain[block.Header.Height] = slice
 			b.Length++
-			fmt.Println("stuff", b.Chain[block.Header.Height])
-
 		} else {
 			return errors.New("Cannot insert, block with same hash already exists")
 		}
@@ -73,14 +70,14 @@ func (b *Blockchain) EncodeToJSON() (string, error) {
 
 // DecodeFromJSON decodes a string to a list of block JSON strings and inserts each block into the chain
 func (b *Blockchain) DecodeFromJSON(jsonData []byte) error {
-	tmp := []interface{}{&b.Chain}
-	wantLen := len(tmp)
-
-	if err := json.Unmarshal(jsonData, &tmp); err != nil {
+	var blocks []*Block
+	if err := json.Unmarshal(jsonData, &blocks); err != nil {
 		return err
 	}
-	if g, e := len(tmp), wantLen; g != e {
-		return fmt.Errorf("Wrong number of fields in Blockchain: %d != %d", g, e)
+	for _, block := range blocks {
+		if err := b.Insert(block); err != nil {
+			return err
+		}
 	}
 	return nil
 }
