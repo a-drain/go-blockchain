@@ -36,7 +36,6 @@ func TestDecodeFromJSON(t *testing.T) {
 	jsonBytes := []byte(jsonStr)
 
 	gotBlock, err := DecodeFromJSON(jsonBytes)
-	fmt.Println("Value", gotBlock.Value)
 
 	expectedBlock := &Block{Header: Header{
 		Height:     0,
